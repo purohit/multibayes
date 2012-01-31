@@ -85,16 +85,16 @@ class MultinomialBayes():
             sentence = sentence.replace(emoticon, "emo_sad")
         return sentence
 
-examples = (("Biscuit is a happy, happy dog", "positive"),
-            ("Biscuit is a terribly sad dog", "negative"),
-            ("Biscuit is sad constantly. :(", "negative"),
-            ("Did you know biscuit's depression results from over-eating?", "negative"),
-            ("When biscuit sees the sun shine, he grins widely", "positive"),
-            ("That's not to say some days aren't gloomy. Clouds make him so sad.", "negative"),
-            ("But when the clouds disappear, his face brightens. He wags his tail, and is happy", "positive"),
-            ("I love biscuit :-)!", "positive"))
-
+# Example usage
 if __name__ == '__main__':
+    examples = (("Biscuit is a happy, happy dog", "positive"),
+                ("Biscuit is a terribly sad dog", "negative"),
+                ("Biscuit is sad constantly. :(", "negative"),
+                ("Did you know biscuit's depression results from over-eating?", "negative"),
+                ("When biscuit sees the sun shine, he grins widely", "positive"),
+                ("That's not to say some days aren't gloomy. Clouds make him so sad.", "negative"),
+                ("But when the clouds disappear, his face brightens. He wags his tail, and is happy", "positive"),
+                ("I love biscuit :-)!", "positive"))
     m = MultinomialBayes(examples)
     print m.classify("Biscuit is so happy")
     print m.classify("Biscuit is a sad puppy :(")
