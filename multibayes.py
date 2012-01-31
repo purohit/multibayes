@@ -38,7 +38,7 @@ class MultinomialBayes():
         P(a|b) = P(b|a)P(a)/P(b). So if we're asking if P(class1|document) > P(class2|document),
         we just need to compare P(document|class1)P(class1)/P(document) > P(document|class2)P(class2)/P(document)
         = P(document|class1)P(class1) > P(document|class2)P(class2)
-        Also performs Laplace smoothing for the product.
+        Uses Laplace smoothing and log-likelihood to prevent underflow/0-mangling.
         """
         example_counter = Counter(self.smart_tokenize(example))
         unique_words_in_example = len(example_counter.keys())
@@ -57,23 +57,25 @@ class MultinomialBayes():
                 denom = factorial(freq) * (num_words_for_label)**freq
                 fractions.append((num, denom))
             lcm = reduce(self.lcm, [denom for num, denom in fractions] + [num_docs])
+            # Laplace smoothing, log-likehood
             fractions = [log10((num + 1)/(denom + unique_words_in_example)) for num, denom in fractions]
             n_factorial = log10((factorial(unique_words_in_example) * lcm + 1) / (lcm + unique_words_in_example))
             prob_class = log10(label_freq/num_docs)
             log_likelihood_of_class = sum(fractions) + n_factorial + prob_class
             likelihoods[label] = log_likelihood_of_class
 
-        print likelihoods
-        return likelihoods
+        # You could change this to (5) for the top 5 likely classes
+        label, likelihood = likelihoods.most_common(1)[0]
+        return label
 
     @classmethod
     def smart_tokenize(cls, sentence):
-        return nltk.wordpunct_tokenize(cls.emoticons_to_sentinels(sentence))
+        return nltk.wordpunct_tokenize(cls.emoticons_to_flags(sentence))
 
     @classmethod
-    def emoticons_to_sentinels(cls, sentence):
+    def emoticons_to_flags(cls, sentence):
         """
-        Replaces emoticons in a sentence with the emo_happy, emo_sad labels
+        Replaces emoticons in a sentence with the emo_happy, emo_sad flags
         """
         happy = set((">:]",":-)",":)",":o)",":]",":3",":c)",":>","=]","8)","=)",":}",":^)"))
         sad = set((">:[",":-(",":(",":-c",":c",":-<",":<",":-[",":[",":{",">.>","<.<",">.<"))
@@ -94,5 +96,5 @@ examples = (("Biscuit is a happy, happy dog", "positive"),
 
 if __name__ == '__main__':
     m = MultinomialBayes(examples)
-    m.classify("Biscuit is so happy")
-
+    print m.classify("Biscuit is so happy")
+    print m.classify("Biscuit is a sad puppy :(")
