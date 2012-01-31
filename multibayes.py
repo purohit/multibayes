@@ -1,7 +1,7 @@
 from __future__ import division
 import nltk
 from collections import Counter, defaultdict
-from math import factorial, log10
+from math import factorial, log
 
 class MultinomialBayes():
     """
@@ -54,9 +54,9 @@ class MultinomialBayes():
                 fractions.append((num, denom))
             lcm = reduce(self.lcm, [denom for num, denom in fractions] + [num_docs])
             # Laplace smoothing, log-likehood
-            fractions = [log10((num + 1)/(denom + unique_words_in_example)) for num, denom in fractions]
-            n_factorial = log10((factorial(unique_words_in_example) * lcm + 1) / (lcm + unique_words_in_example))
-            prob_class = log10(label_freq/num_docs)
+            fractions = [log((num + 1)/(denom + unique_words_in_example)) for num, denom in fractions]
+            n_factorial = log((factorial(unique_words_in_example) * lcm + 1) / (lcm + unique_words_in_example))
+            prob_class = log(label_freq/num_docs)
             log_likelihood_of_class = sum(fractions) + n_factorial + prob_class
             likelihoods[label] = log_likelihood_of_class
 
