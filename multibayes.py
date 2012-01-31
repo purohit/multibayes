@@ -34,9 +34,7 @@ class MultinomialBayes():
     def classify(self, example):
         """
         Classifies a example based on training data passed into the initialization.
-        Note that we don't have to do a full Bayesian comparision. Bayes rule is:
-        P(a|b) = P(b|a)P(a)/P(b). So if we're asking if P(class1|document) > P(class2|document),
-        we just need to compare P(document|class1)P(class1)/P(document) > P(document|class2)P(class2)/P(document)
+        We need to compare P(document|class1)P(class1)/P(document) > P(document|class2)P(class2)/P(document)
         = P(document|class1)P(class1) > P(document|class2)P(class2)
         Uses Laplace smoothing and log-likelihood to prevent underflow/0-mangling.
         """
@@ -75,7 +73,7 @@ class MultinomialBayes():
     @classmethod
     def emoticons_to_flags(cls, sentence):
         """
-        Replaces emoticons in a sentence with the emo_happy, emo_sad flags
+        Replaces emoticons in a sentence with the emo_happy, emo_sad flags. Use before tokenization.
         """
         happy = set((">:]",":-)",":)",":o)",":]",":3",":c)",":>","=]","8)","=)",":}",":^)"))
         sad = set((">:[",":-(",":(",":-c",":c",":-<",":<",":-[",":[",":{",">.>","<.<",">.<"))
