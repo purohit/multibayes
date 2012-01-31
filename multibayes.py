@@ -48,7 +48,7 @@ class MultinomialBayes():
 
         num_docs = sum(self.labels.values())
 
-        likelihoods = {}
+        likelihoods = Counter()
         for label, label_freq in self.labels.items():
             num_words_for_label = sum(self.counters[label].values())
             fractions = [] # This is a list of [(num, denom)] for all multinomial terms
