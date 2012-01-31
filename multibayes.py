@@ -23,6 +23,14 @@ class MultinomialBayes():
             self.counters[label].update(tokens)
             self.labels[label] += 1
 
+    @classmethod
+    def lcm(cls, a, b):
+        """ Least-common multiple, Euclid style. """
+        gcd, tmp = a,b
+        while tmp != 0:
+            gcd,tmp = tmp, gcd % tmp
+        return a*b/gcd
+
     def classify(self, example):
         """
         Classifies a example based on training data passed into the initialization.
@@ -34,25 +42,29 @@ class MultinomialBayes():
         """
         example_counter = Counter(self.smart_tokenize(example))
         unique_words_in_example = len(example_counter.keys())
-        num_docs = sum(self.labels.values())
-        # TODO: Laplace smooth this initial probability; only smoothing the terms for now
-        prod = factorial(unique_words_in_example)
-        print "{} unique words in example, against {} docs".format(unique_words_in_example, num_docs)
 
         if unique_words_in_example == 0:
             raise ValueError("Can't classify an empty document.")
 
-        for label, label_freq in self.labels.items():
-            prob = prod
-            num_words_for_label = sum(self.counters[label].values())
-            for term, freq in example_counter.items():
-                # TODO: Transfer this to the log-likelihood domain
-                prob_of_term_given_class = ((self.counters[label][term]/num_words_for_label)**freq + 1)/(factorial(freq) + unique_words_in_example + 1)
-                prob = prob * prob_of_term_given_class
-                print "total prob is {:f}, after applying P({}|{}) = {:f}".format(prob, term, label, prob_of_term_given_class)
+        num_docs = sum(self.labels.values())
 
-            prob = prob * (label_freq/num_docs)
-            print "Probability that example is class {0} is {1:f}".format(label, prob)
+        likelihoods = {}
+        for label, label_freq in self.labels.items():
+            num_words_for_label = sum(self.counters[label].values())
+            fractions = [] # This is a list of [(num, denom)] for all multinomial terms
+            for term, freq in example_counter.items():
+                num = self.counters[label][term]**freq
+                denom = factorial(freq) * (num_words_for_label)**freq
+                fractions.append((num, denom))
+            lcm = reduce(self.lcm, [denom for num, denom in fractions] + [num_docs])
+            fractions = [log10((num + 1)/(denom + unique_words_in_example)) for num, denom in fractions]
+            n_factorial = log10((factorial(unique_words_in_example) * lcm + 1) / (lcm + unique_words_in_example))
+            prob_class = log10(label_freq/num_docs)
+            log_likelihood_of_class = sum(fractions) + n_factorial + prob_class
+            likelihoods[label] = log_likelihood_of_class
+
+        print likelihoods
+        return likelihoods
 
     @classmethod
     def smart_tokenize(cls, sentence):
