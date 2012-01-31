@@ -7,7 +7,7 @@ from math import factorial, log10
 
 class MultinomialBayes():
     """
-    We don't use straight up Naive Bayes because it's too naive... word frequencies matter.
+    Naive Bayes is too naive... word frequencies matter.
     """
     examples = []
     counters = defaultdict(Counter)
@@ -22,10 +22,6 @@ class MultinomialBayes():
             self.examples.append((tokens, label))
             self.counters[label].update(tokens)
             self.labels[label] += 1
-
-        print self.examples
-        print self.counters
-        print self.labels
 
     def classify(self, example):
         """
@@ -50,7 +46,7 @@ class MultinomialBayes():
             prob = prod
             num_words_for_label = sum(self.counters[label].values())
             for term, freq in example_counter.items():
-                # TODO: Transfer this to the log domain
+                # TODO: Transfer this to the log-likelihood domain
                 prob_of_term_given_class = ((self.counters[label][term]/num_words_for_label)**freq + 1)/(factorial(freq) + unique_words_in_example + 1)
                 prob = prob * prob_of_term_given_class
                 print "total prob is {:f}, after applying P({}|{}) = {:f}".format(prob, term, label, prob_of_term_given_class)
