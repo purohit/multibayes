@@ -1,20 +1,19 @@
 from __future__ import division
-import nltk
+import re
+from nltk import word_tokenize
+from nltk.corpus import stopwords
 from collections import Counter, defaultdict
 from math import factorial, log
 
 class MultinomialBayes():
-    """
-    Naive Bayes is too naive... word frequencies matter.
-    """
+    """ Naive Bayes is too naive... word frequencies matter.  """
+    punctuations = re.compile(r"^[.,!?;]*$")
     examples = []
     counters = defaultdict(Counter)
     labels = Counter()
 
     def __init__(self, examples):
-        """
-        Takes examples which is an iterable of tuples, like: ((sentence, label), (sentence, label)...)
-        """
+        """ Takes examples which is an iterable of tuples, like: ((sentence, label), (sentence, label)...) """
         for example, label in examples:
             tokens = self.smart_tokenize(example)
             self.examples.append((tokens, label))
@@ -66,13 +65,22 @@ class MultinomialBayes():
 
     @classmethod
     def smart_tokenize(cls, sentence):
-        return nltk.wordpunct_tokenize(cls.emoticons_to_flags(sentence))
+        """ Removes stopwords, replaces emoticons with flags, and tokenizes the string """
+        return cls.strip_nonwords(cls.remove_stopwords(word_tokenize(cls.emoticons_to_flags(sentence))))
+
+    @classmethod
+    def strip_nonwords(cls, tokens):
+        """ Given a list of tokens, remove ones that are merely punctuation """
+        return [t for t in tokens if not cls.punctuations.match(t)]
+
+    @classmethod
+    def remove_stopwords(cls, tokens):
+        """ Given a list of tokens, removes those that are stopwords """
+        return [t for t in tokens if t not in stopwords.words('english')]
 
     @classmethod
     def emoticons_to_flags(cls, sentence):
-        """
-        Replaces emoticons in a sentence with the emo_happy, emo_sad flags. Use before tokenization.
-        """
+        """ Replaces emoticons in a sentence with the emo_happy, emo_sad flags. Use before tokenization.  """
         happy = set((">:]",":-)",":)",":o)",":]",":3",":c)",":>","=]","8)","=)",":}",":^)"))
         sad = set((">:[",":-(",":(",":-c",":c",":-<",":<",":-[",":[",":{",">.>","<.<",">.<"))
         for emoticon in happy:
