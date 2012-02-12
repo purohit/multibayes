@@ -13,7 +13,7 @@ class MultinomialBayes():
     labels = Counter()
 
     def __init__(self, examples=[]):
-        """ Examples are tuples, like: ((sentence, label), (sentence, label)...) """
+        """ Examples are tuples, like: ((sentence, label), ...) """
         for example, label in examples:
             self.train(example, label)
 
@@ -64,8 +64,7 @@ class MultinomialBayes():
             likelihoods[label] = log_likelihood_of_class
 
         # You could change this to (5) for the top 5 likely classes
-        label, likelihood = likelihoods.most_common(1)[0]
-        return label
+        return likelihoods.most_common(3)
 
     @classmethod
     def smart_tokenize(cls, sentence):
