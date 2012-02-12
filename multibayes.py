@@ -12,13 +12,10 @@ class MultinomialBayes():
     counters = defaultdict(Counter)
     labels = Counter()
 
-    def __init__(self, examples):
-        """ Takes examples which is an iterable of tuples, like: ((sentence, label), (sentence, label)...) """
+    def __init__(self, examples=[]):
+        """ Examples are tuples, like: ((sentence, label), (sentence, label)...) """
         for example, label in examples:
-            tokens = self.smart_tokenize(example)
-            self.examples.append((tokens, label))
-            self.counters[label].update(tokens)
-            self.labels[label] += 1
+            self.train(example, label)
 
     @classmethod
     def lcm(cls, a, b):
@@ -27,6 +24,13 @@ class MultinomialBayes():
         while tmp != 0:
             gcd,tmp = tmp, gcd % tmp
         return a*b/gcd
+
+    def train(self, example, label):
+        """ Trains itself on a single example, label pair """
+        tokens = self.smart_tokenize(example)
+        self.examples.append((tokens, label))
+        self.counters[label].update(tokens)
+        self.labels[label] += 1
 
     def classify(self, example):
         """
