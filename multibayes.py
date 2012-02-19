@@ -5,9 +5,40 @@ from nltk.corpus import stopwords
 from collections import Counter, defaultdict
 from math import factorial, log
 
+class memoized(object):
+   """Decorator that caches a function's return value each time it is called.
+   If called later with the same arguments, the cached value is returned, and
+   not re-evaluated.
+   """
+   def __init__(self, func):
+      self.func = func
+      self.cache = {}
+   def __call__(self, *args):
+      try:
+         return self.cache[args]
+      except KeyError:
+         value = self.func(*args)
+         self.cache[args] = value
+         return value
+      except TypeError:
+         # uncachable -- for instance, passing a list as an argument.
+         # Better to not cache than to blow up entirely.
+         return self.func(*args)
+   def __repr__(self):
+      """Return the function's docstring."""
+      return self.func.__doc__
+   def __get__(self, obj, objtype):
+      """Support instance methods."""
+      return functools.partial(self.__call__, obj)
+
+class MultinomialBayesException(Exception):
+    pass
+
 class MultinomialBayes():
     """ Naive Bayes is too naive... word frequencies matter.  """
     punctuations = re.compile(r"^[.,!?;]*$")
+    delimiters = re.compile(r"(\.|\,)+")
+
     examples = []
     counters = defaultdict(Counter)
     labels = Counter()
@@ -18,12 +49,17 @@ class MultinomialBayes():
             self.train(example, label)
 
     @classmethod
+    def gcd(cls, a, b):
+        """Return greatest common divisor using Euclid's Algorithm."""
+        while b:
+            a, b = b, a % b
+        return a
+
+    @classmethod
+    @memoized
     def lcm(cls, a, b):
-        """ Least-common multiple, Euclid style. """
-        gcd, tmp = a,b
-        while tmp != 0:
-            gcd,tmp = tmp, gcd % tmp
-        return a*b/gcd
+        """Return lowest common multiple."""
+        return a * b // cls.gcd(a, b)
 
     def train(self, example, label):
         """ Trains itself on a single example, label pair """
@@ -43,11 +79,12 @@ class MultinomialBayes():
         unique_words_in_example = len(example_counter.keys())
 
         if unique_words_in_example == 0:
-            raise ValueError("Can't classify an empty document.")
+            raise MultinomialBayesException("Can't classify an empty document")
 
         num_docs = sum(self.labels.values())
 
         likelihoods = Counter()
+        #print example_counter
         for label, label_freq in self.labels.items():
             num_words_for_label = sum(self.counters[label].values())
             fractions = [] # This is a list of [(num, denom)] for all multinomial terms
@@ -69,7 +106,7 @@ class MultinomialBayes():
     @classmethod
     def smart_tokenize(cls, sentence):
         """ Removes stopwords, replaces emoticons with flags, and tokenizes the string """
-        return cls.strip_nonwords(cls.remove_stopwords(word_tokenize(cls.emoticons_to_flags(sentence))))
+        return cls.strip_nonwords(cls.remove_stopwords(cls.lowercase_words(word_tokenize(cls.delimiters_to_spaces(cls.emoticons_to_flags(sentence))))))
 
     @classmethod
     def strip_nonwords(cls, tokens):
@@ -80,6 +117,14 @@ class MultinomialBayes():
     def remove_stopwords(cls, tokens):
         """ Given a list of tokens, removes those that are stopwords """
         return [t for t in tokens if t not in stopwords.words('english')]
+
+    @classmethod
+    def lowercase_words(cls, tokens):
+        return [t.lower() for t in tokens]
+
+    @classmethod
+    def delimiters_to_spaces(cls, sentence):
+        return cls.delimiters.sub(" ", sentence)
 
     @classmethod
     def emoticons_to_flags(cls, sentence):
