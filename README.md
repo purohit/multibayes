@@ -4,6 +4,7 @@ removing stopwords, and changing emoticons to happy/negative flags.
 Short, and sweet.
 
 Here:
+
     from multibayes import MultinomialBayes
     training_set = (('some sentence example', 'label one'), ('another sentence', 'label two'))
     m = MultinomialBayes(training_set)
