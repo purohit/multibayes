@@ -1,1 +1,6 @@
 A multinomial Bayes classifier for English text. Short, and sweet.
+
+Here:
+    training_set = (('some sentence example', 'its label'), ('another sentence', 'and its label'))
+    m = MultinomialBayes(training_set)
+    m.classify('a test example')
